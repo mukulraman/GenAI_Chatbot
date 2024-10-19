@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot Interface</title>
+  <style>
+    body {
+      font-family: 'Arimo', sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Pacifico', cursive;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border: 2px solid #ccc;
+      outline: none;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+      width: 18%;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+
+    .chat-log {
+      margin-top: 20px;
+      text-align: left;
+      overflow-y: scroll;
+      height: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+    }
+
+    .user-message {
+      text-align: left;
+      color: green; /* Change color to green */
+    }
+
+    .bot-message {
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="chat-container">
+      <h1>Chatbot Interface</h1>
+
+      <!-- Chat log -->
+      <div class="chat-log" id="chatLog">
+        <!-- Chat messages will be displayed here -->
+      </div>
+
+      <!-- Input for user messages -->
+      <input type="text" id="question" placeholder="Type your message here" required="required" onkeypress="return onKeyPress(event)" />
+      <button type="button" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Function to send user message and receive bot response
+    function sendMessage() {
+      var userInput = document.getElementById("question").value;
+      var chatLog = document.getElementById("chatLog");
+
+      // Display user message in chat log
+      var userMessageDiv = document.createElement("div");
+      userMessageDiv.className = "user-message";
+      userMessageDiv.innerHTML = "<strong>You:</strong> " + userInput;
+      chatLog.appendChild(userMessageDiv);
+
+      // Send user message to Flask app
+      fetch('/get_answer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'question=' + encodeURIComponent(userInput)
+      })
+        .then(response => response.json())
+        .then(data => {
+          // Display bot response in chat log
+          var botMessageDiv = document.createElement("div");
+          botMessageDiv.className = "bot-message";
+          botMessageDiv.innerHTML = "<strong>Bot:</strong> " + data.answer;
+          chatLog.appendChild(botMessageDiv);
+
+          // Scroll chat log to bottom
+          chatLog.scrollTop = chatLog.scrollHeight;
+        })
+        .catch(error => console.error('Error:', error));
+
+      // Clear input field after sending message
+      document.getElementById("question").value = "";
+    }
+
+    // Function to send user message on pressing Enter key
+    function onKeyPress(event) {
+      if (event.keyCode === 13) { // Enter key pressed
+        sendMessage();
+        return false; // Prevent form submission
+      }
+      return true;
+    }
+  </script>
+</body>
+
+</html>
